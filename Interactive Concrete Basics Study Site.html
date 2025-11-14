@@ -42,6 +42,33 @@
         .scroll-container::-webkit-scrollbar-track {
             background-color: #1e1e1e;
         }
+        /* Custom CSS for Mind Map Visualization */
+        .node {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+            margin: 0.5rem;
+            text-align: center;
+            font-weight: 600;
+        }
+        .node-main {
+            background-color: #bb86fc;
+            color: #121212;
+            font-size: 1.5rem; /* text-2xl */
+        }
+        .node-secondary {
+            background-color: #03dac6;
+            color: #121212;
+            font-size: 1.25rem; /* text-xl */
+        }
+        .node-detail {
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            font-size: 1rem; /* text-base */
+            padding: 0.5rem 1rem;
+        }
     </style>
 </head>
 <body class="main-bg text-gray-100 min-h-screen">
@@ -232,41 +259,48 @@
             { front: "What is the term for concrete poured and cured on site?", back: "Insitu" },
             { front: "What structural junction is easier to achieve with Insitu columns?", back: "Rigid beam/column junctions" }
         ];
-
-        const MINDMAP_NODES = [
-            { id: 1, label: "Concrete Basics", x: 50, y: 50, color: "text-primary", size: "text-2xl" },
-
-            { id: 2, label: "Mixture", parent: 1, x: 20, y: 150, color: "text-secondary" },
-            { id: 3, label: "Curing & Strength", parent: 1, x: 40, y: 250, color: "text-secondary" },
-            { id: 4, label: "Performance", parent: 1, x: 70, y: 350, color: "text-secondary" },
-            { id: 5, label: "Reinforcing", parent: 1, x: 100, y: 450, color: "text-secondary" },
-            { id: 6, label: "Applications", parent: 1, x: 150, y: 550, color: "text-secondary" },
-
-            // Mixture Sub-nodes
-            { id: 21, label: "Cement (Binder)", parent: 2, x: 200, y: 120 },
-            { id: 22, label: "Aggregate (Gravel/Sand)", parent: 2, x: 200, y: 160 },
-            { id: 23, label: "Additives (Retarder)", parent: 2, x: 200, y: 200 },
-
-            // Curing Sub-nodes
-            { id: 31, label: "28 Days (Full Strength)", parent: 3, x: 220, y: 240 },
-            { id: 32, label: "90% @ 14 Days", parent: 3, x: 220, y: 280 },
-            { id: 33, label: "17.5 MPa (Residential)", parent: 3, x: 220, y: 320 },
-
-            // Performance Sub-nodes
-            { id: 41, label: "Fire Resistance", parent: 4, x: 250, y: 360 },
-            { id: 42, label: "Sound Attenuation (Party Wall)", parent: 4, x: 250, y: 400 },
-            { id: 43, label: "Weather-tightness", parent: 4, x: 250, y: 440 },
-
-            // Reinforcing Sub-nodes
-            { id: 51, label: "Strong in Compression", parent: 5, x: 280, y: 480 },
-            { id: 52, label: "Weak in Tension (Needs Steel)", parent: 5, x: 280, y: 520 },
-            { id: 53, label: "Compaction (Remove Air Voids)", parent: 5, x: 280, y: 560 },
-
-            // Applications Sub-nodes
-            { id: 61, label: "Insitu (Columns, Slabs)", parent: 6, x: 320, y: 600 },
-            { id: 62, label: "Precast (Walls, Tilt Panels)", parent: 6, x: 320, y: 640 },
-            { id: 63, label: "Masonry Blocks (Solid-filled)", parent: 6, x: 320, y: 680 }
+        
+        // Refactored MINDMAP_NODES for structural layout (no complex coordinates needed)
+        const MINDMAP_STRUCTURE = [
+            {
+                id: 1,
+                label: "Concrete Basics",
+                type: "main",
+                children: [
+                    {
+                        id: 2,
+                        label: "Mixture",
+                        type: "secondary",
+                        details: ["Cement (Binder)", "Aggregate (Gravel/Sand)", "Additives (Retarder)"]
+                    },
+                    {
+                        id: 3,
+                        label: "Curing & Strength",
+                        type: "secondary",
+                        details: ["28 Days (Full Strength)", "90% @ 14 Days", "17.5 MPa (Residential)", "Water/Cement Ratio"]
+                    },
+                    {
+                        id: 4,
+                        label: "Performance",
+                        type: "secondary",
+                        details: ["Fire Resistance", "Sound Attenuation (Party Wall)", "Weather-tightness"]
+                    },
+                    {
+                        id: 5,
+                        label: "Reinforcing",
+                        type: "secondary",
+                        details: ["Strong in Compression", "Weak in Tension (Needs Steel)", "Compaction (Remove Air Voids)"]
+                    },
+                    {
+                        id: 6,
+                        label: "Applications",
+                        type: "secondary",
+                        details: ["Insitu (Columns, Slabs)", "Precast (Walls, Tilt Panels)", "Masonry Blocks (Solid-filled)"]
+                    },
+                ]
+            }
         ];
+
 
         // --- 2. GLOBAL STATE AND UTILITIES ---
 
@@ -574,68 +608,38 @@
         // --- MIND MAP FUNCTION ---
 
         function renderMindMap() {
-            // A simple, responsive, non-canvas mind map visualization using HTML/CSS
             let html = `
                 <h2 class="text-3xl font-extrabold text-primary mb-6 border-b border-gray-700 pb-2">🧠 Mind Map Visualization</h2>
-                <p class="text-gray-400 mb-8">This map outlines the key concepts and their relationship, visually connecting major topics for guided learning.</p>
-                <div id="mindmap-container" class="relative min-h-[700px] w-full mx-auto p-4 md:p-10 card-bg rounded-xl shadow-2xl border border-gray-700">
-            `;
+                <p class="text-gray-400 mb-8">This map outlines the key concepts and their relationship, visually connecting major topics for guided learning. Scroll horizontally if needed.</p>
+                
+                <div class="card-bg p-6 rounded-xl shadow-2xl border border-gray-700 overflow-x-auto">
+                    <div class="flex flex-col items-center">
+                        ${MINDMAP_STRUCTURE.map(root => `
+                            <div class="flex flex-col items-center mb-10">
+                                <div class="node node-main">${root.label}</div>
+                                
+                                <div class="w-1 h-10 bg-primary/70 my-2"></div> <!-- Root connection line -->
 
-            MINDMAP_NODES.forEach(node => {
-                const parentNode = node.parent ? MINDMAP_NODES.find(n => n.id === node.parent) : null;
-                const top = node.y;
-                const left = node.x;
+                                <div class="flex flex-wrap justify-center space-x-4 md:space-x-8">
+                                    ${root.children.map(topic => `
+                                        <div class="flex flex-col items-center mb-4 min-w-[150px] max-w-[200px]">
+                                            <div class="node node-secondary">${topic.label}</div>
+                                            
+                                            <div class="w-1 h-6 bg-secondary/70 my-1"></div> <!-- Topic connection line -->
 
-                // Node bubble
-                html += `
-                    <div id="node-${node.id}" class="absolute p-2 rounded-full shadow-lg text-center transform -translate-x-1/2 -translate-y-1/2 hover:scale-105 transition duration-200 ${node.color || 'bg-gray-700 text-gray-200'} ${node.size || 'text-md'} font-semibold"
-                        style="top: ${top}px; left: ${left}%;">
-                        ${node.label}
+                                            <div class="flex flex-col items-center space-y-2">
+                                                ${topic.details.map(detail => `
+                                                    <div class="node node-detail">${detail}</div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
-                `;
-
-                // Simplified Connection Line (for visual effect, based on simple top/left percentage positioning)
-                if (parentNode) {
-                    const lineStyle = `
-                        position: absolute;
-                        top: ${parentNode.y + 10}px;
-                        left: ${parentNode.x + 5}%;
-                        height: ${node.y - parentNode.y}px;
-                        width: 2px;
-                        background-color: #bb86fc;
-                        z-index: 0;
-                        transform: translateX(-50%);
-                    `;
-
-                    // Horizontal offset line (not perfect, but visually suggestive)
-                    const offsetStyle = `
-                        position: absolute;
-                        top: ${node.y}px;
-                        left: ${Math.min(parentNode.x, node.x)}%;
-                        width: ${Math.abs(parentNode.x - node.x)}%;
-                        height: 2px;
-                        background-color: #bb86fc;
-                        z-index: 0;
-                    `;
-
-                    // Since CSS for complex geometry is hard here, we'll draw a simplified vertical line
-                    // The line is drawn from the parent's y to the child's y, at the child's x position.
-                    const verticalLineStyle = `
-                        position: absolute;
-                        top: ${parentNode.y + 30}px; /* Start below parent */
-                        left: ${node.x}%;
-                        height: ${node.y - parentNode.y - 30}px;
-                        width: 2px;
-                        background-color: #03dac6;
-                        transform: translateX(-50%);
-                        z-index: 0;
-                    `;
-                    // html += `<div style="${lineStyle}"></div>`;
-                    html += `<div style="${verticalLineStyle}"></div>`;
-                }
-            });
-
-            html += `</div>`;
+                </div>
+            `;
             contentArea.innerHTML = html;
         }
 
